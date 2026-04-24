@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Champions Cricket Performance Analyzer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid transparent;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active {
+            background: white;
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tab {
+            display: none;
+        }
+
+        .tab.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .player-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-primary { background: #dbeafe; color: var(--primary); }
+        .badge-success { background: #d1fae5; color: var(--success); }
+        .badge-warning { background: #fef3c7; color: var(--warning); }
+        .badge-danger { background: #fee2e2; color: var(--danger); }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .stat-row:last-child { border-bottom: none; }
+
+        .stat-label { color: var(--text-secondary); font-weight: 500; }
+        .stat-value { color: var(--text-primary); font-weight: 600; }
+
+        .perf-box {
+            background: #f0f9ff;
+            border-left: 3px solid var(--primary);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .perf-box strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .checkbox-label:hover {
+            background: #f1f5f9;
+            border-color: var(--primary);
+        }
+
+        .checkbox-label input {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .link-btn {
+            background: var(--success);
+            color: white;
+            padding: 0.7rem 1.3rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .rankings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .rank-num {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 40px;
+        }
+
+        .rank-info {
+            flex: 1;
+            margin-left: 0.75rem;
+        }
+
+        .rank-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .rank-stats {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .grid, .rankings { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                Champions Cricket Analyzer
+            </div>
+            <div class="nav">
+                <button class="nav-btn active" data-tab="stats">📊 Player Stats</button>
+                <button class="nav-btn" data-tab="data">💾 Data</button>
+                <button class="nav-btn" data-tab="xi">🏏 XI Builder</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="stats" class="tab active">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-trophy"></i>
+                    Top 10 Performers
+                </div>
+                <div class="rankings" id="top-performers"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    Complete Player Profiles (50 Players)
+                </div>
+                <div class="grid" id="all-players"></div>
+            </div>
+        </div>
+
+        <div id="data" class="tab">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-download"></i>
+                    Download Data
+                </div>
+                <button class="link-btn" onclick="downloadJSON()">📄 Download JSON</button>
+                <button class="link-btn" onclick="downloadCSV()">📊 Download CSV</button>
+                <button class="link-btn" onclick="viewRaw()">🔍 View Raw</button>
+            </div>
+            <div id="raw" style="display:none;">
+                <div class="section">
+                    <pre id="raw-data" style="background:#f8fafc; padding:1rem; border-radius:8px; overflow-x:auto; font-size:0.85rem;"></pre>
+                </div>
+            </div>
+        </div>
+
+        <div id="xi" class="tab">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-users-line"></i>
+                    Build Your Playing XI
+                </div>
+                <div id="player-selector"></div>
+                <div style="background:#f0f9ff; padding:1rem; border-radius:8px; margin:1.5rem 0; text-align:center;">
+                    <span style="font-weight:600;">Selected: <strong id="count" style="color:var(--primary); font-size:1.3rem;">0</strong>/11</span>
+                </div>
+                <button class="btn" id="gen-xi" style="width:100%;">
+                    <i class="fas fa-wand-magic-sparkles"></i> Generate Optimal XI
+                </button>
+                <div id="xi-out" style="display:none; margin-top:1.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const PLAYERS = {
+  "Ankit Harneja": {
+    "role": "All-Rounder",
+    "runs": 74,
+    "matches_batted": 7,
+    "wickets": 10,
+    "matches_bowled": 7,
+    "best_positions": {
+      "Pos1": 2,
+      "Pos4": 2,
+      "Pos5": 1,
+      "Pos9": 1,
+      "Pos10": 1
+    },
+    "strengths": [
+      "Good Batsman",
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 25,
+      "opponent": "The Victory Vipers",
+      "date": "12/13/2025"
+    },
+    "best_bowling": {
+      "wickets": 4,
+      "opponent": "Champions",
+      "date": "03/28/2026"
+    }
+  },
+  "Aman Prabhakar": {
+    "role": "Batsman",
+    "runs": 4,
+    "matches_batted": 3,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos2": 2,
+      "Pos9": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 2,
+      "opponent": "Hustlers",
+      "date": "04/18/2026"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Prabh Singh": {
+    "role": "All-Rounder",
+    "runs": 268,
+    "matches_batted": 31,
+    "wickets": 38,
+    "matches_bowled": 31,
+    "best_positions": {
+      "Pos3": 5,
+      "Pos4": 6,
+      "Pos6": 5,
+      "Pos5": 11,
+      "Pos8": 3,
+      "Pos7": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 26,
+      "opponent": "Delta Force",
+      "date": "11/15/2025"
+    },
+    "best_bowling": {
+      "wickets": 3,
+      "opponent": "Fremont Eagles",
+      "date": "11/15/2025"
+    }
+  },
+  "Manu Hadke": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 2,
+    "wickets": 4,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos4": 2
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Hustlers",
+      "date": "04/18/2026"
+    }
+  },
+  "Chetan Bansal": {
+    "role": "All-Rounder",
+    "runs": 207,
+    "matches_batted": 28,
+    "wickets": 47,
+    "matches_bowled": 28,
+    "best_positions": {
+      "Pos5": 5,
+      "Pos8": 4,
+      "Pos4": 2,
+      "Pos6": 3,
+      "Pos9": 5,
+      "Pos3": 1,
+      "Pos11": 3,
+      "Pos10": 2,
+      "Pos7": 3
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 33,
+      "opponent": "Hustlers",
+      "date": "04/18/2026"
+    },
+    "best_bowling": {
+      "wickets": 4,
+      "opponent": "Champions",
+      "date": "11/08/2025"
+    }
+  },
+  "Sandeep Singh": {
+    "role": "All-Rounder",
+    "runs": 95,
+    "matches_batted": 19,
+    "wickets": 7,
+    "matches_bowled": 12,
+    "best_positions": {
+      "Pos6": 2,
+      "Pos9": 3,
+      "Pos3": 1,
+      "Pos5": 1,
+      "Pos7": 1,
+      "Pos8": 2,
+      "Pos11": 5,
+      "Pos2": 1,
+      "Pos4": 1,
+      "Pos10": 1,
+      "Pos1": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 18,
+      "opponent": "Hustlers",
+      "date": "04/18/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Invincibles California",
+      "date": "03/07/2026"
+    }
+  },
+  "Avinoor Singh Kohli": {
+    "role": "All-Rounder",
+    "runs": 4,
+    "matches_batted": 2,
+    "wickets": 2,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos7": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 2,
+      "opponent": "Hustlers",
+      "date": "04/18/2026"
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Hustlers",
+      "date": "04/18/2026"
+    }
+  },
+  "Puneet Arora": {
+    "role": "All-Rounder",
+    "runs": 125,
+    "matches_batted": 25,
+    "wickets": 2,
+    "matches_bowled": 7,
+    "best_positions": {
+      "Pos8": 7,
+      "Pos10": 2,
+      "Pos9": 1,
+      "Pos7": 5,
+      "Pos1": 1,
+      "Pos4": 2,
+      "Pos5": 3,
+      "Pos2": 2,
+      "Pos3": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 15,
+      "opponent": "Champions",
+      "date": "01/11/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Smashers",
+      "date": "12/20/2025"
+    }
+  },
+  "Vln Vasudevan": {
+    "role": "All-Rounder",
+    "runs": 4,
+    "matches_batted": 10,
+    "wickets": 1,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos9": 5,
+      "Pos10": 2,
+      "Pos6": 1,
+      "Pos3": 1,
+      "Pos5": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 2,
+      "opponent": "Champions",
+      "date": "04/11/2026"
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Mavericks",
+      "date": "12/06/2025"
+    }
+  },
+  "Shashwat Agrawal": {
+    "role": "All-Rounder",
+    "runs": 7,
+    "matches_batted": 13,
+    "wickets": 25,
+    "matches_bowled": 13,
+    "best_positions": {
+      "Pos10": 7,
+      "Pos7": 2,
+      "Pos9": 2,
+      "Pos8": 1,
+      "Pos6": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 5,
+      "opponent": "Avengers",
+      "date": "04/19/2026"
+    },
+    "best_bowling": {
+      "wickets": 5,
+      "opponent": "Avengers",
+      "date": "04/19/2026"
+    }
+  },
+  "Gautam Kanwar": {
+    "role": "All-Rounder",
+    "runs": 158,
+    "matches_batted": 20,
+    "wickets": 0,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos11": 3,
+      "Pos2": 4,
+      "Pos3": 2,
+      "Pos6": 2,
+      "Pos1": 5,
+      "Pos9": 1,
+      "Pos5": 2,
+      "Pos8": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 27,
+      "opponent": "Champions",
+      "date": "11/09/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Sri Ram Vasala": {
+    "role": "Batsman",
+    "runs": 8,
+    "matches_batted": 4,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos1": 1,
+      "Pos4": 1,
+      "Pos11": 1,
+      "Pos10": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 6,
+      "opponent": "Rangers",
+      "date": "01/10/2026"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Kaushik Karuturi": {
+    "role": "All-Rounder",
+    "runs": 231,
+    "matches_batted": 11,
+    "wickets": 0,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos2": 10,
+      "Pos6": 1
+    },
+    "strengths": [
+      "Consistent Run Scorer"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 70,
+      "opponent": "Mavericks",
+      "date": "12/06/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Raja Singh": {
+    "role": "All-Rounder",
+    "runs": 67,
+    "matches_batted": 7,
+    "wickets": 11,
+    "matches_bowled": 7,
+    "best_positions": {
+      "Pos3": 3,
+      "Pos1": 2,
+      "Pos4": 1,
+      "Pos5": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 28,
+      "opponent": "Fremont Eagles",
+      "date": "11/15/2025"
+    },
+    "best_bowling": {
+      "wickets": 4,
+      "opponent": "Champions",
+      "date": "04/04/2026"
+    }
+  },
+  "Gurjeet Singh": {
+    "role": "All-Rounder",
+    "runs": 125,
+    "matches_batted": 10,
+    "wickets": 13,
+    "matches_bowled": 8,
+    "best_positions": {
+      "Pos6": 3,
+      "Pos3": 2,
+      "Pos5": 1,
+      "Pos7": 1,
+      "Pos4": 2,
+      "Pos10": 1
+    },
+    "strengths": [
+      "Good Batsman",
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 53,
+      "opponent": "The Victory Vipers",
+      "date": "12/13/2025"
+    },
+    "best_bowling": {
+      "wickets": 3,
+      "opponent": "Rangers",
+      "date": "01/10/2026"
+    }
+  },
+  "Pragatheesh Murugesan": {
+    "role": "Batsman",
+    "runs": 74,
+    "matches_batted": 11,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos7": 3,
+      "Pos5": 1,
+      "Pos3": 3,
+      "Pos1": 2,
+      "Pos8": 1,
+      "Pos4": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 28,
+      "opponent": "Invincibles California",
+      "date": "03/07/2026"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Shubham Thosar": {
+    "role": "All-Rounder",
+    "runs": 120,
+    "matches_batted": 13,
+    "wickets": 16,
+    "matches_bowled": 13,
+    "best_positions": {
+      "Pos8": 1,
+      "Pos7": 2,
+      "Pos9": 1,
+      "Pos6": 4,
+      "Pos4": 2,
+      "Pos2": 1,
+      "Pos10": 2
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 19,
+      "opponent": "Invincibles California",
+      "date": "03/07/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "04/11/2026"
+    }
+  },
+  "Gursewak Singh": {
+    "role": "All-Rounder",
+    "runs": 6,
+    "matches_batted": 10,
+    "wickets": 12,
+    "matches_bowled": 10,
+    "best_positions": {
+      "Pos11": 4,
+      "Pos7": 1,
+      "Pos8": 3,
+      "Pos10": 1,
+      "Pos9": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Poor",
+    "best_batting": {
+      "runs": 2,
+      "opponent": "Royal Challengers Bayarea",
+      "date": "01/24/2026"
+    },
+    "best_bowling": {
+      "wickets": 3,
+      "opponent": "Mavericks",
+      "date": "12/06/2025"
+    }
+  },
+  "Pankaj Aggarwal": {
+    "role": "All-Rounder",
+    "runs": 16,
+    "matches_batted": 4,
+    "wickets": 1,
+    "matches_bowled": 4,
+    "best_positions": {
+      "Pos4": 1,
+      "Pos3": 1,
+      "Pos6": 1,
+      "Pos7": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 12,
+      "opponent": "Rising Stars",
+      "date": "01/17/2026"
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Rising Stars",
+      "date": "01/17/2026"
+    }
+  },
+  "Navdeep Singh": {
+    "role": "All-Rounder",
+    "runs": 3,
+    "matches_batted": 4,
+    "wickets": 4,
+    "matches_bowled": 3,
+    "best_positions": {
+      "Pos11": 2,
+      "Pos10": 1,
+      "Pos8": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 3,
+      "opponent": "Rising Stars",
+      "date": "01/17/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Mavericks",
+      "date": "12/06/2025"
+    }
+  },
+  "Rohit Chakravarthy": {
+    "role": "Batsman",
+    "runs": 251,
+    "matches_batted": 12,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos1": 10,
+      "Pos2": 1,
+      "Pos4": 1
+    },
+    "strengths": [
+      "Consistent Run Scorer"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 42,
+      "opponent": "Fremont Eagles",
+      "date": "11/15/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Karthik Chandrasekar": {
+    "role": "Batsman",
+    "runs": 7,
+    "matches_batted": 2,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos10": 1,
+      "Pos2": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 7,
+      "opponent": "Champions",
+      "date": "11/08/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Gaurav Khurana": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 3,
+    "wickets": 0,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos11": 3
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Arihant Banthia": {
+    "role": "Batsman",
+    "runs": 0,
+    "matches_batted": 2,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos9": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Samiullah Baig Mirza": {
+    "role": "Batsman",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos10": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Mohammed Sami": {
+    "role": "Batsman",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos11": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Valramjit Singh": {
+    "role": "Batsman",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos11": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Azaruddin Jodatti": {
+    "role": "Batsman",
+    "runs": 139,
+    "matches_batted": 7,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos3": 3,
+      "Pos6": 2,
+      "Pos8": 1,
+      "Pos2": 1
+    },
+    "strengths": [
+      "Consistent Run Scorer"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 41,
+      "opponent": "Avengers",
+      "date": "04/19/2026"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Amit Handa": {
+    "role": "All-Rounder",
+    "runs": 33,
+    "matches_batted": 4,
+    "wickets": 4,
+    "matches_bowled": 4,
+    "best_positions": {
+      "Pos7": 1,
+      "Pos5": 1,
+      "Pos1": 1,
+      "Pos4": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 23,
+      "opponent": "Champions",
+      "date": "01/11/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "VK 18",
+      "date": "01/18/2026"
+    }
+  },
+  "Lohith Om": {
+    "role": "All-Rounder",
+    "runs": 50,
+    "matches_batted": 10,
+    "wickets": 7,
+    "matches_bowled": 8,
+    "best_positions": {
+      "Pos9": 1,
+      "Pos3": 1,
+      "Pos10": 1,
+      "Pos5": 2,
+      "Pos6": 3,
+      "Pos7": 1,
+      "Pos4": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 41,
+      "opponent": "VK 18",
+      "date": "01/18/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "11/09/2025"
+    }
+  },
+  "Yash Doshi": {
+    "role": "All-Rounder",
+    "runs": 1,
+    "matches_batted": 3,
+    "wickets": 1,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos11": 1,
+      "Pos10": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 1,
+      "opponent": "Avengers",
+      "date": "04/19/2026"
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Delta Force",
+      "date": "11/15/2025"
+    }
+  },
+  "Arth Dave": {
+    "role": "Batsman",
+    "runs": 218,
+    "matches_batted": 10,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos1": 3,
+      "Pos2": 5,
+      "Pos3": 2
+    },
+    "strengths": [
+      "Consistent Run Scorer"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 52,
+      "opponent": "Champions",
+      "date": "04/11/2026"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Tarun Kumar": {
+    "role": "All-Rounder",
+    "runs": 6,
+    "matches_batted": 4,
+    "wickets": 1,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos11": 3,
+      "Pos9": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 6,
+      "opponent": "Champions",
+      "date": "04/11/2026"
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Delta Force",
+      "date": "11/15/2025"
+    }
+  },
+  "Senthilkumar Gopal": {
+    "role": "Batsman",
+    "runs": 6,
+    "matches_batted": 6,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos4": 1,
+      "Pos7": 3,
+      "Pos8": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 3,
+      "opponent": "Delta Force",
+      "date": "11/15/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Ashwin Phadke": {
+    "role": "All-Rounder",
+    "runs": 37,
+    "matches_batted": 4,
+    "wickets": 3,
+    "matches_bowled": 4,
+    "best_positions": {
+      "Pos9": 1,
+      "Pos7": 1,
+      "Pos2": 1,
+      "Pos6": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 28,
+      "opponent": "VK 18",
+      "date": "01/18/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Delta Force",
+      "date": "11/15/2025"
+    }
+  },
+  "Sanjay Kunnath Vijaykumar": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 1,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos10": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Invincibles California",
+      "date": "03/07/2026"
+    }
+  },
+  "Sai Kulakarni": {
+    "role": "Batsman",
+    "runs": 44,
+    "matches_batted": 6,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos3": 2,
+      "Pos2": 2,
+      "Pos9": 1,
+      "Pos6": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 17,
+      "opponent": "Champions",
+      "date": "12/14/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Sudin Dinesh": {
+    "role": "All-Rounder",
+    "runs": 13,
+    "matches_batted": 6,
+    "wickets": 2,
+    "matches_bowled": 6,
+    "best_positions": {
+      "Pos6": 1,
+      "Pos10": 1,
+      "Pos9": 1,
+      "Pos4": 1,
+      "Pos11": 1,
+      "Pos3": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 8,
+      "opponent": "Champions",
+      "date": "12/06/2025"
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "VK 18",
+      "date": "01/18/2026"
+    }
+  },
+  "Harish Gowda": {
+    "role": "Batsman",
+    "runs": 37,
+    "matches_batted": 5,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos7": 1,
+      "Pos1": 2,
+      "Pos3": 1,
+      "Pos4": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 15,
+      "opponent": "Champions",
+      "date": "12/14/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Parimal Singh": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 2,
+    "wickets": 0,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos9": 1,
+      "Pos5": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Humayun Irshad": {
+    "role": "All-Rounder",
+    "runs": 7,
+    "matches_batted": 1,
+    "wickets": 2,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos1": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 7,
+      "opponent": "Champions",
+      "date": "12/06/2025"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "12/06/2025"
+    }
+  },
+  "Avinash Singh": {
+    "role": "All-Rounder",
+    "runs": 1,
+    "matches_batted": 2,
+    "wickets": 3,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos9": 1,
+      "Pos10": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 1,
+      "opponent": "Champions",
+      "date": "12/06/2025"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "12/06/2025"
+    }
+  },
+  "Mohammad Nasim Noormal": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 2,
+    "wickets": 1,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos10": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Champions",
+      "date": "10/26/2025"
+    }
+  },
+  "Hardik Joshi": {
+    "role": "Batsman",
+    "runs": 4,
+    "matches_batted": 1,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos9": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 4,
+      "opponent": "Delta Force",
+      "date": "11/15/2025"
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Sandeep Noolu": {
+    "role": "All-Rounder",
+    "runs": 9,
+    "matches_batted": 4,
+    "wickets": 2,
+    "matches_bowled": 4,
+    "best_positions": {
+      "Pos8": 4
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Improving",
+    "best_batting": {
+      "runs": 4,
+      "opponent": "Champions",
+      "date": "03/28/2026"
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "03/14/2026"
+    }
+  },
+  "Suhas E": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 2,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos11": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "10/26/2025"
+    }
+  },
+  "Simarpartap Singh": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 0,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos11": 1
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Raja Reddy Thumma": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 2,
+    "wickets": 2,
+    "matches_bowled": 2,
+    "best_positions": {
+      "Pos4": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 1,
+      "opponent": "Champions",
+      "date": "03/28/2026"
+    }
+  },
+  "Pardhu Varma": {
+    "role": "Batsman",
+    "runs": 0,
+    "matches_batted": 2,
+    "wickets": 0,
+    "matches_bowled": 0,
+    "best_positions": {
+      "Pos7": 2
+    },
+    "strengths": [
+      "Developing Player"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 0,
+      "opponent": "",
+      "date": ""
+    }
+  },
+  "Harish Kumar": {
+    "role": "All-Rounder",
+    "runs": 0,
+    "matches_batted": 1,
+    "wickets": 2,
+    "matches_bowled": 1,
+    "best_positions": {
+      "Pos11": 1
+    },
+    "strengths": [
+      "Economical Bowler"
+    ],
+    "form": "Stable",
+    "best_batting": {
+      "runs": 0,
+      "opponent": "",
+      "date": ""
+    },
+    "best_bowling": {
+      "wickets": 2,
+      "opponent": "Champions",
+      "date": "03/14/2026"
+    }
+  }
+};
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+}
+
+function renderTopPerformers() {
+    const players = Object.entries(PLAYERS);
+    
+    const topBatsmen = players.filter(([_, p]) => p.matches_batted > 0)
+        .sort((a, b) => b[1].runs - a[1].runs).slice(0, 10);
+    
+    const topBowlers = players.filter(([_, p]) => p.matches_bowled > 0)
+        .sort((a, b) => b[1].wickets - a[1].wickets).slice(0, 10);
+    
+    let html = `<div><h3 style="margin-bottom:1rem; color:var(--primary);">🏏 Top Run Scorers</h3>`;
+    
+    topBatsmen.forEach(([name, data], i) => {
+        const avg = (data.runs / data.matches_batted).toFixed(1);
+        html += `<div class="rank-item">
+            <div class="rank-num">#${i+1}</div>
+            <div class="rank-info">
+                <div class="rank-name">${name}</div>
+                <div class="rank-stats">${data.runs} runs @ ${avg}/M | Best: ${data.best_batting.runs} vs ${data.best_batting.opponent}</div>
+            </div>
+        </div>`;
+    });
+    
+    html += `</div><div><h3 style="margin-bottom:1rem; color:var(--primary);">🎯 Top Wicket Takers</h3>`;
+    
+    topBowlers.forEach(([name, data], i) => {
+        const avg = (data.wickets / data.matches_bowled).toFixed(1);
+        html += `<div class="rank-item">
+            <div class="rank-num">#${i+1}</div>
+            <div class="rank-info">
+                <div class="rank-name">${name}</div>
+                <div class="rank-stats">${data.wickets} wickets @ ${avg}/M | Best: ${data.best_bowling.wickets} vs ${data.best_bowling.opponent}</div>
+            </div>
+        </div>`;
+    });
+    
+    html += `</div>`;
+    document.getElementById('top-performers').innerHTML = html;
+}
+
+function renderAllPlayers() {
+    const players = Object.entries(PLAYERS)
+        .sort((a, b) => (b[1].runs + b[1].wickets * 10) - (a[1].runs + a[1].wickets * 10));
+    
+    let html = '';
+    players.forEach(([name, data]) => {
+        const bestPos = Object.keys(data.best_positions).slice(0, 3).join(', ') || 'N/A';
+        const formClass = data.form.toLowerCase();
+        
+        html += `<div class="card">
+            <div class="player-name">${name}</div>
+            <div style="margin-bottom:0.75rem;">
+                <span class="badge badge-primary">${data.role}</span>
+                <span class="badge badge-${formClass === 'improving' ? 'success' : formClass === 'poor' ? 'danger' : 'warning'}">${data.form}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Runs</span>
+                <span class="stat-value">${data.runs} (${data.matches_batted}M)</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Wickets</span>
+                <span class="stat-value">${data.wickets} (${data.matches_bowled}M)</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Best Positions</span>
+                <span class="stat-value">${bestPos}</span>
+            </div>
+            ${data.best_batting.runs > 0 ? `<div class="perf-box">
+                <strong>🏏 Best Batting:</strong>
+                ${data.best_batting.runs} runs vs ${data.best_batting.opponent}
+            </div>` : ''}
+            ${data.best_bowling.wickets > 0 ? `<div class="perf-box">
+                <strong>🎯 Best Bowling:</strong>
+                ${data.best_bowling.wickets} wickets vs ${data.best_bowling.opponent}
+            </div>` : ''}
+            <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border); font-size:0.85rem; color:var(--text-secondary);">
+                <strong>Strengths:</strong> ${data.strengths.join(', ')}
+            </div>
+        </div>`;
+    });
+    
+    document.getElementById('all-players').innerHTML = html;
+}
+
+function renderXIBuilder() {
+    const players = Object.entries(PLAYERS);
+    
+    let html = '';
+    players.forEach(([name, data]) => {
+        html += `<label class="checkbox-label">
+            <input type="checkbox" value="${name}">
+            <span><strong>${name}</strong> - ${data.role} (${data.runs}R / ${data.wickets}W)</span>
+        </label>`;
+    });
+    
+    document.getElementById('player-selector').innerHTML = html;
+    
+    document.querySelectorAll('#player-selector input').forEach(input => {
+        input.addEventListener('change', () => {
+            const count = document.querySelectorAll('#player-selector input:checked').length;
+            document.getElementById('count').textContent = count;
+        });
+    });
+    
+    document.getElementById('gen-xi').addEventListener('click', () => {
+        const selected = Array.from(document.querySelectorAll('#player-selector input:checked'))
+            .map(input => input.value);
+        
+        if (selected.length !== 11) {
+            alert('Please select exactly 11 players!');
+            return;
+        }
+        
+        const team = selected.map(name => ({name, ...PLAYERS[name]}));
+        
+        // SMART BATTING ORDER
+        const batsmen = team.filter(p => p.matches_batted > 0).map(p => {
+            const avg_runs = p.runs / p.matches_batted;
+            let score = 0;
+            
+            // Form multiplier
+            const form_mult = p.form === 'Improving' ? 1.3 : p.form === 'Poor' ? 0.7 : 1.0;
+            
+            // Best position scoring (Pos1-2 are openers, Pos3-5 middle order, Pos6+ lower)
+            let position_score = 0;
+            const best_pos = Object.keys(p.best_positions)[0];
+            if (best_pos && best_pos.includes('1') || best_pos.includes('2')) {
+                position_score = 30; // Opener material
+            } else if (best_pos && (best_pos.includes('3') || best_pos.includes('4') || best_pos.includes('5'))) {
+                position_score = 25; // Middle order
+            } else if (best_pos && (best_pos.includes('6') || best_pos.includes('7'))) {
+                position_score = 20; // Lower middle
+            }
+            
+            // Calculate composite score
+            score = (avg_runs * 2 + position_score) * form_mult;
+            
+            return {...p, composite_score: score, avg_runs, position_score};
+        }).sort((a, b) => b.composite_score - a.composite_score);
+        
+        // Arrange batting order strategically
+        let batting_order = [];
+        
+        // Positions 1-2: Best openers (highest avg, best at Pos1-2)
+        const openers = batsmen.filter(p => Object.keys(p.best_positions)[0]?.includes('1') || Object.keys(p.best_positions)[0]?.includes('2'));
+        const top_openers = openers.sort((a, b) => b.avg_runs - a.avg_runs).slice(0, 2);
+        if (top_openers.length < 2) {
+            batting_order.push(...top_openers, ...batsmen.filter(p => !top_openers.includes(p)).slice(0, 2 - top_openers.length));
+        } else {
+            batting_order.push(...top_openers);
+        }
+        
+        // Positions 3-5: Stable middle order players (good form, consistent average)
+        const middle_order = batsmen.filter(p => !batting_order.includes(p))
+            .filter(p => p.form !== 'Poor')
+            .sort((a, b) => b.composite_score - a.composite_score)
+            .slice(0, 3);
+        batting_order.push(...middle_order);
+        
+        // Positions 6-7: Lower middle order, all-rounders who can bat
+        const lower_middle = batsmen.filter(p => !batting_order.includes(p) && p.wickets > 5)
+            .sort((a, b) => b.composite_score - a.composite_score)
+            .slice(0, 2);
+        batting_order.push(...lower_middle);
+        
+        // Fill remaining with best available
+        const remaining = batsmen.filter(p => !batting_order.includes(p))
+            .sort((a, b) => b.composite_score - a.composite_score);
+        batting_order.push(...remaining.slice(0, 11 - batting_order.length));
+        
+        // SMART BOWLING ORDER
+        const bowlers = team.filter(p => p.matches_bowled > 0).map(p => {
+            const avg_wickets = p.wickets / p.matches_bowled;
+            const economy = avg_wickets > 0 ? p.wickets / p.matches_bowled : 0; // Simple wickets per match
+            
+            // Form multiplier
+            const form_mult = p.form === 'Improving' ? 1.3 : p.form === 'Poor' ? 0.7 : 1.0;
+            
+            // Strike bowler vs economical
+            const is_strike_bowler = avg_wickets > 1.8;
+            const is_economical = avg_wickets > 1.0 && avg_wickets <= 1.8;
+            
+            let type_score = 0;
+            if (is_strike_bowler) type_score = 40;
+            else if (is_economical) type_score = 30;
+            else type_score = 20;
+            
+            const composite_score = (avg_wickets * 15 + type_score) * form_mult;
+            
+            return {...p, composite_score, avg_wickets, type_score, is_strike_bowler, is_economical};
+        });
+        
+        // Arrange bowling order strategically
+        let bowling_order = [];
+        
+        // First bowler: Best strike bowler in good form
+        const strike_bowlers = bowlers.filter(p => p.is_strike_bowler).sort((a, b) => b.composite_score - a.composite_score);
+        if (strike_bowlers.length > 0) {
+            bowling_order.push(strike_bowlers[0]);
+        } else {
+            bowling_order.push(bowlers[0]);
+        }
+        
+        // Second bowler: Contrasting style (if first is strike, pick economical, vice versa)
+        const remaining_bowlers = bowlers.filter(p => !bowling_order.includes(p));
+        if (strike_bowlers.length > 0 && bowling_order[0].is_strike_bowler) {
+            const economical = remaining_bowlers.filter(p => p.is_economical).sort((a, b) => b.composite_score - a.composite_score);
+            if (economical.length > 0) {
+                bowling_order.push(economical[0]);
+            } else {
+                bowling_order.push(remaining_bowlers[0]);
+            }
+        } else {
+            bowling_order.push(remaining_bowlers[0]);
+        }
+        
+        // Third to Last: Add remaining bowlers up to 6 total
+        const final_bowlers = bowlers.filter(p => !bowling_order.includes(p))
+            .sort((a, b) => b.composite_score - a.composite_score);
+        const remaining_slots = Math.min(final_bowlers.length, 6 - bowling_order.length);
+        bowling_order.push(...final_bowlers.slice(0, remaining_slots));
+        
+        // Build output
+        let output = `<div class="rankings">
+            <div class="section">
+                <h3 style="color:var(--primary); margin-bottom:1rem;">🏏 Optimized Batting Order</h3>
+                <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1rem;">
+                    Ordered by: Best positions, Form, Consistency & Average
+                </p>`;
+        
+        batting_order.slice(0, 11).forEach((p, i) => {
+            let role_note = '';
+            if (i < 2) role_note = '(Opener)';
+            else if (i < 5) role_note = '(Middle Order)';
+            else role_note = '(Lower Order)';
+            
+            output += `<div class="rank-item">
+                <div class="rank-num">#${i+1}</div>
+                <div class="rank-info">
+                    <div class="rank-name">${p.name} ${role_note}</div>
+                    <div class="rank-stats">${p.runs}R @ ${p.avg_runs.toFixed(1)}/M | Best at: ${Object.keys(p.best_positions)[0] || 'N/A'} | ${p.form}</div>
+                </div>
+            </div>`;
+        });
+        
+        output += `</div><div class="section">
+                <h3 style="color:var(--primary); margin-bottom:1rem;">🎯 Optimized Bowling Order (Max 6 Bowlers)</h3>
+                <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1rem;">
+                    Ordered by: Strike capability, Economy, Contrasting styles & Form
+                </p>`;
+        
+        bowling_order.slice(0, 6).forEach((p, i) => {
+            let bowl_type = p.is_strike_bowler ? '(Strike)' : p.is_economical ? '(Economical)' : '(All-purpose)';
+            output += `<div class="rank-item">
+                <div class="rank-num">#${i+1}</div>
+                <div class="rank-info">
+                    <div class="rank-name">${p.name} ${bowl_type}</div>
+                    <div class="rank-stats">${p.wickets}W @ ${p.avg_wickets.toFixed(2)}/M | ${p.form}</div>
+                </div>
+            </div>`;
+        });
+        
+        output += `</div></div>`;
+        document.getElementById('xi-out').innerHTML = output;
+        document.getElementById('xi-out').style.display = 'block';
+    });
+}
+
+function downloadJSON() {
+    const blob = new Blob([JSON.stringify(PLAYERS, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'champions-data.json';
+    a.click();
+}
+
+function downloadCSV() {
+    let csv = 'Player,Role,Runs,Matches Batted,Wickets,Matches Bowled,Form,Best Batting,Best Bowling\n';
+    Object.entries(PLAYERS).forEach(([name, data]) => {
+        csv += `"${name}","${data.role}",${data.runs},${data.matches_batted},${data.wickets},${data.matches_bowled},"${data.form}","${data.best_batting.runs} vs ${data.best_batting.opponent}","${data.best_bowling.wickets} vs ${data.best_bowling.opponent}"\n`;
+    });
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'champions-data.csv';
+    a.click();
+}
+
+function viewRaw() {
+    document.getElementById('raw').style.display = 'block';
+    document.getElementById('raw-data').textContent = JSON.stringify(PLAYERS, null, 2);
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    renderTopPerformers();
+    renderAllPlayers();
+    renderXIBuilder();
+});
+    </script>
+</body>
+</html>
